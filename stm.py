@@ -1,134 +1,172 @@
 from stmpy import Driver, Machine
 import paho.mqtt.client as mqtt
 from threading import Thread
-import gpiozero
-import movenet as mn
+import time
+#import gpiozero
+#import movenet as mn
+import keyboard as kb
+import sys
 
 print("Hello, World!")
-user1_topic = "ttm4115/team06/HITW/user1"
-user2_topic = "ttm4115/team06/HITW/user2"
+p1_topic = "ttm4115/team06/HITW/user1"
+p2_topic = "ttm4115/team06/HITW/user2"
 ctrl_topic = "ttm4115/team06/HITW/controller"
 
 class HoleInTheWall:
     def __init__(self):
-        self.button = gpiozero.Button(1)
-        self.led = gpiozero.LED(1)
-        self.greenLightOn = self.led.on
-        self.greenLightOff = self.led.off
+        
+        self.led = None
+        #self.button = gpiozero.Button(1)
+        #self.led = gpiozero.LED(1)
+        #self.greenLightOn = self.led.on
+        #self.greenLightOff = self.led.off
         self.own_score = 0
         self.round_number = 0
 
     def on_button_press(self, b):
         self.stm.send('button1')
-    
-    def terminateSession():
-        print("a")
 
-    def startGameSession():
+    def kb_backup(player_stm):
+        kb.add_hotkey("numpad_enter", player_stm.on_button_press(self, b))
+
+    def terminateSession(self):
+        print("Terminate session")
+        myclient.unsubscribe(p1_topic)
+        myclient.unsubscribe(p2_topic)
+
+    def sendGameInvite(self): #subscribe to player 2
+        myclient.subscribe(p2_topic)
+
+        myclient.unsubscribe(ctrl_topic)
+        myclient.publish(ctrl_topic, "receiveGreenLight")
+        myclient.subscribe(ctrl_topic)
+
+    def startGameSession(self):
         print("b")
 
-    def startGame():
+    def startGame(self):
+        score = [None, None, None]
         print("c")
-        movenet_detector = mv.MoveNet()
+        #movenet_detector = mn.MoveNet()
 
-    def showScores():
-        print("d")
+    def startRound(self):
+        print("startRound")
+    
+    def showTotalScores(self):
+        print("show total scores")
+    
+    def sendScore(self):
+        print("Send Score")
 
-    def waitingToAccept():
-        print("e")
+    def greenLight(self):
+        if self.led != None:
+            self.led.on
+        else:
+            print("Lights on!")
 
-    def greenLight():
-        self.led.on
+    def lightsOff(self):
+        if self.led != None:
+            self.led.off
+        else:
+            print("Lights Off")
 
-    def lightOff():
-        self.led.off
+    def sendGameInvite(self):
+        myclient.publish(p2_topic, "receiveGameInvite")
 
-    def sendGreenLight():
-        myclient.publish(user2_topic, "greenlight")
+    def sendInviteTimedOut(self):
+        myclient.publish(p2_topic, "receiveInviteTimedOut")
 
-    def sendGameInvite():
-        myclient.publish(user2_topic, "gameinvite")
+    def sendInviteAccepted(self):
+        myclient.publish(p1_topic, "inviteAccepted")
+        myclient.subscribe(p1_topic)
 
-    def sendInviteTimedOut:
-        myclient.publish(user2_topic, "")
-
-    def receiveInviteTimedOut:
-        self.led.on
-
-    def receiveGreenLight():
+    def terminateGameSession(self):
         print("asd")
 
-    def endGame():
+    def endGame(self):
         print("asd")
 
 t0 = {'source': 'initial',
-      'target': 'idle'}
+      'target': 'idle',
+      'effect': 'kb_backup'}
 
 # Change 1: effect is removed
-t1 = {'trigger': 'button1',
+t1 = {'trigger': 'button1', #button1
       'source': 'idle',
       'target': 'connecting'}
 
 # Change 2: effect is removed here, too
-t2 = {'trigger': 't',
+t2 = {'trigger': 't', #timer
       'source': 'connecting',
-      'target': 'idle'}
+      'target': 'idle',
+      'effect': 'sendInviteTimedOut'}
 
-t2 = {'trigger': 't',
+t3 = {'trigger': 'inviteAccepted', #inviteAccepted
       'source': 'connecting',
-      'target': 'idle'}
+      'target': 'initializeGame'}
 
-t3 = {'trigger': 'inviteAccepted',
-      'source': 'connecting',
+t4 = {'trigger': 'round1',  #round1
+      'source': 'initializeGame',
       'target': 'playing'}
 
-t4 = {'trigger': 'gameFinished',
+t5 = {'trigger': 'newRound', #newRound
+      'effect' : 'sendScore',
       'source': 'playing',
-      'target': 'postgame'}
+      'target': 'playing'}
 
-t5 = {'trigger': 'button1',
+t6 = {'trigger': 'gameFinished', #gameFinished
       'source': 'playing',
+      'target': 'postGame'}
+
+t7 = {'trigger': 'doubleClick',    #doubleClick
+      'source': 'postGame',
+      'target': 'initializeGame'}
+
+t8 = {'trigger': 'button2',    #button2
+      'source': 'playing',
+      'target': 'idle',
+      'effect': 'endGame'}
+
+t9 = {'trigger': 'button3',    #button3
+      'source': 'postGame',
       'target': 'idle'}
 
-t6 = {'trigger': 'receiveGreenLight',
+t10 = {'trigger': 'recieveGameInvite', #receiveGreenLight
       'source': 'idle',
       'target': 'waitingToAccept'}
 
-t7 = {'trigger': 'receiveInviteTimedOut',
+t11 = {'trigger': 'receiveInviteTimedOut', #receiveInviteTimedOut
       'source': 'waitingToAccept',
       'target': 'idle'}
 
-t8 = {'trigger': 'button1',
+t12 = {'trigger': 'button1', #p2 accept game
       'source': 'waitingToAccept',
-      'target': 'playing'}
-
-t9 = {'trigger': 'button1',
-      'source': 'postgame',
-      'target': 'idle'}
-
-t10 = {'trigger': 'doubleclick',
-       'source': 'postgame',
-       'target': 'playing'}
+      'target': 'initializeGame',
+      'effect': 'sendInviteAccepted'}
 
 # Change 3: We declare dicts for the states
 idle = {'name': 'idle',
-        'entry': 'terminateGameSession; start_timer("t", 6000)'
+        'entry': 'terminateGameSession; lightsOff;'
         }
 
 connecting = {'name': 'connecting',
-              'entry': 'sendGameInvite; start_timer("t", 1000)'
+              'entry': 'sendGameInvite; start_timer("t", 60000); startGameSession; sendGreenLight'
               }
 
 waitingToAccept = {'name': 'waitingToAccept',
-                   'entry': 'greenLight; start_timer("t", 1000)'
+                   'entry': 'greenLight; start_timer("t", 1000)',
                    }
 
-playing = {'name': 'playing',
-           'entry': 'startGame; start_timer("t", 1000)'
+initializeGame = {'name': 'initializeGame',
+           'entry': 'startGame; start_timer("t", 1000); startPoseNetTracker; greenLight'
            }
 
-postgame = {'name': 'postgame',
-            'entry': 'showScores; start_timer("t", 1000)'
+playing = {'name': 'playing',
+           'entry': 'startRound;'
+           }
+
+postGame = {'name': 'postGame',
+            'entry': 'showScores; start_timer("t", 1000), endGame; lightsOff'
             }
 
 
@@ -149,13 +187,13 @@ class MQTT_Client_1:
         rcvd_msg = msg.payload.decode("utf-8")
         #self.stm_driver.send(msg.payload.decode("utf-8"), "quiz")
         #self.client.publish("gruppe6/quiz/question", "Quiz?")
-        self.stm_driver.send(rcvd_msg, "")
+        self.stm_driver.send(rcvd_msg, "player")
 
     def start(self, broker, port):
 
         print("Connecting to {}:{}".format(broker, port))
         self.client.connect(broker, port)
-        self.client.subscribe("gruppe6/quiz/answer")
+        self.client.subscribe(ctrl_topic)
 
         try:
             # line below should not have the () after the function!
@@ -169,9 +207,9 @@ class MQTT_Client_1:
 broker, port = "mqtt.item.ntnu.no", 1883
 
 player = HoleInTheWall()
-player_machine = Machine(transitions=[t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10], states=[
-                         idle, connecting, waitingToAccept, playing, postgame], obj=player, name="player")
-hitw_functions = [attribute for attribute in dir(HoleInTheWall) if callable(getattr(HoleInTheWall, attribute)) if attribute.startswith("__") is False].replace('"', '')
+player_machine = Machine(transitions=[t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12], states=[
+                         idle, connecting, waitingToAccept, playing, postGame], obj=player, name="player")
+#hitw_functions = [attribute for attribute in dir(HoleInTheWall) if callable(getattr(HoleInTheWall, attribute)) if attribute.startswith("__") is False].replace('"', '')
 
 driver = Driver()
 driver.add_machine(player_machine)
@@ -182,3 +220,12 @@ myclient.stm_driver = driver
 
 driver.start()
 myclient.start(broker, port)
+
+#def game(mqttclient, player):
+#    clock = time.Clock()
+#    roundno = 0
+#    running = True
+#    while running:
+
+#Fallback Keyboard input
+
