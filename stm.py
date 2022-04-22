@@ -1,7 +1,7 @@
 from stmpy import Driver, Machine
 import paho.mqtt.client as mqtt
 from threading import Thread
-import gpiozero as gz
+import gpiozero
 import movenet as mn
 
 print("Hello, World!")
@@ -9,11 +9,10 @@ user1_topic = "ttm4115/team06/HITW/user1"
 user2_topic = "ttm4115/team06/HITW/user2"
 ctrl_topic = "ttm4115/team06/HITW/controller"
 
-
 class HoleInTheWall:
     def __init__(self):
-        self.button = gz.Button(1)
-        self.led = gz.LED(1)
+        self.button = gpiozero.Button(1)
+        self.led = gpiozero.LED(1)
         self.greenLightOn = self.led.on
         self.greenLightOff = self.led.off
         self.own_score = 0
@@ -21,7 +20,7 @@ class HoleInTheWall:
 
     def on_button_press(self, b):
         self.stm.send('button1')
-
+    
     def terminateSession():
         print("a")
 
@@ -61,7 +60,6 @@ class HoleInTheWall:
 
     def endGame():
         print("asd")
-
 
 t0 = {'source': 'initial',
       'target': 'idle'}
@@ -149,8 +147,9 @@ class MQTT_Client_1:
         #self.stm_driver.send("message", "tick_tock")
         print(msg.payload.decode("utf-8"))
         rcvd_msg = msg.payload.decode("utf-8")
-        self.stm_driver.send(msg.payload.decode("utf-8"), "quiz")
+        #self.stm_driver.send(msg.payload.decode("utf-8"), "quiz")
         #self.client.publish("gruppe6/quiz/question", "Quiz?")
+        self.stm_driver.send(rcvd_msg, "")
 
     def start(self, broker, port):
 
@@ -172,7 +171,7 @@ broker, port = "mqtt.item.ntnu.no", 1883
 player = HoleInTheWall()
 player_machine = Machine(transitions=[t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10], states=[
                          idle, connecting, waitingToAccept, playing, postgame], obj=player, name="player")
-hitw_functions = [attribute for attribute in dir(HoleInTheWall) if callable(getattr(HoleInTheWall, attribute)) if attribute.startswith("__") is false].replace('"', '')
+hitw_functions = [attribute for attribute in dir(HoleInTheWall) if callable(getattr(HoleInTheWall, attribute)) if attribute.startswith("__") is False].replace('"', '')
 
 driver = Driver()
 driver.add_machine(player_machine)
