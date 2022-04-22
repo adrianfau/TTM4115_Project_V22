@@ -12,18 +12,18 @@ ctrl_topic = "ttm4115/team06/HITW/controller"
 
 class HoleInTheWall:
     def __init__(self):
-        self.button = gz.Button(1)
-        self.led = gz.LED(1)
-        self.greenLightOn = self.led.on
-        self.greenLightOff = self.led.off
+       # self.button = gz.Button(1)
+       # self.led = gz.LED(1)
+       # self.greenLightOn = self.led.on
+       # self.greenLightOff = self.led.off
         self.own_score = 0
-        self.round_number = 0
+       # self.round_number = 0
 
     def on_button_press(self, b):
         self.stm.send('button1')
 
     def terminateSession():
-        print("a")
+        print("Terminate session")
 
     def startGameSession():
         print("b")
@@ -31,18 +31,31 @@ class HoleInTheWall:
     def startGame():
         print("c")
         movenet_detector = mv.MoveNet()
+    
+    def startPoseNetTracker():
+        print("Start PoseNetTracker")
+
+    def startRound():
+        print("startRound")
 
     def showScores():
         print("d")
+    
+    def showTotalScores():
+        print("show total scores")
+    
+    def sendScore():
+        print("Send Score")
 
     def waitingToAccept():
         print("e")
 
     def greenLight():
-        self.led.on
+        print("greenLight")
 
-    def lightOff():
-        self.led.off
+    def lightsOff():
+        print("lights off")
+
 
     def sendGreenLight():
         myclient.publish(user2_topic, "greenlight")
@@ -50,10 +63,10 @@ class HoleInTheWall:
     def sendGameInvite():
         myclient.publish(user2_topic, "gameinvite")
 
-    def sendInviteTimedOut:
+    def sendInviteTimedOut():
         myclient.publish(user2_topic, "")
 
-    def receiveInviteTimedOut:
+    def receiveInviteTimedOut():
         self.led.on
 
     def receiveGreenLight():
@@ -67,70 +80,80 @@ t0 = {'source': 'initial',
       'target': 'idle'}
 
 # Change 1: effect is removed
-t1 = {'trigger': 'button1',
+button1 = {'trigger': 'button1',
       'source': 'idle',
       'target': 'connecting'}
 
 # Change 2: effect is removed here, too
-t2 = {'trigger': 't',
+t = {'trigger': 't',
       'source': 'connecting',
       'target': 'idle'}
 
-t2 = {'trigger': 't',
+inviteAccepted = {'trigger': 'inviteAccepted',
       'source': 'connecting',
-      'target': 'idle'}
+      'target': 'initializeGame'}
 
-t3 = {'trigger': 'inviteAccepted',
-      'source': 'connecting',
+round1 = {'trigger': 'round1',
+      'source': 'initializeGame',
       'target': 'playing'}
 
-t4 = {'trigger': 'gameFinished',
+newRound = {'trigger': 'newRound',
+      'effect' : 'sendScore',
       'source': 'playing',
-      'target': 'postgame'}
+      'target': 'playing'}
 
-t5 = {'trigger': 'button1',
+gameFinished = {'trigger': 'gameFinished',
       'source': 'playing',
+      'target': 'postGame'}
+
+doubleClick = {'trigger': 'doubleClick',
+      'source': 'postGame',
+      'target': 'initializeGame'}
+
+button2 = {'trigger': 'button2',
+      'source': 'playing',
+      'target': 'idle'}    
+
+button3 = {'trigger': 'button3',
+      'source': 'postGame',
       'target': 'idle'}
 
-t6 = {'trigger': 'receiveGreenLight',
+
+recieveGreenLight = {'trigger': 'recieveGreenLight',
       'source': 'idle',
       'target': 'waitingToAccept'}
 
-t7 = {'trigger': 'receiveInviteTimedOut',
+recieveInviteTimedOut = {'trigger': 'receiveInviteTimedOut',
       'source': 'waitingToAccept',
       'target': 'idle'}
 
-t8 = {'trigger': 'button1',
+button4 = {'trigger': 'button1',
       'source': 'waitingToAccept',
-      'target': 'playing'}
-
-t9 = {'trigger': 'button1',
-      'source': 'postgame',
-      'target': 'idle'}
-
-t10 = {'trigger': 'doubleclick',
-       'source': 'postgame',
-       'target': 'playing'}
+      'target': 'initializeGame'}
 
 # Change 3: We declare dicts for the states
 idle = {'name': 'idle',
-        'entry': 'terminateGameSession; start_timer("t", 6000)'
+        'entry': 'terminateGameSession; start_timer("t", 60000); lightsOff;'
         }
 
 connecting = {'name': 'connecting',
-              'entry': 'sendGameInvite; start_timer("t", 1000)'
+              'entry': 'sendGameInvite; start_timer("t", 60000); startGameSession; sendGreenLight'
               }
 
 waitingToAccept = {'name': 'waitingToAccept',
                    'entry': 'greenLight; start_timer("t", 1000)'
                    }
 
-playing = {'name': 'playing',
-           'entry': 'startGame; start_timer("t", 1000)'
+initializeGame = {'name': 'initializeGame',
+           'entry': 'startGame; start_timer("t", 1000); startPoseNetTracker; greenLight'
            }
 
-postgame = {'name': 'postgame',
-            'entry': 'showScores; start_timer("t", 1000)'
+playing = {'name': 'playing',
+           'entry': 'startRound;'
+           }
+
+postGame = {'name': 'postGame',
+            'entry': 'showScores; start_timer("t", 1000), endGame; lightsOff'
             }
 
 
@@ -170,9 +193,10 @@ class MQTT_Client_1:
 broker, port = "mqtt.item.ntnu.no", 1883
 
 player = HoleInTheWall()
-player_machine = Machine(transitions=[t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10], states=[
-                         idle, connecting, waitingToAccept, playing, postgame], obj=player, name="player")
-hitw_functions = [attribute for attribute in dir(HoleInTheWall) if callable(getattr(HoleInTheWall, attribute)) if attribute.startswith("__") is false].replace('"', '')
+player_machine = Machine(transitions=[t0, button1, t, inviteAccepted, round1, newRound, gameFinished, doubleClick, button2, button3, recieveGreenLight, recieveInviteTimedOut, button4], states=[
+                         idle, connecting, waitingToAccept, playing, postGame], obj=player, name="player")
+#hitw_functions = [attribute for attribute in dir(HoleInTheWall) if callable(getattr(HoleInTheWall, attribute)) if attribute.startswith("__") is False].replace('"', '')
+
 
 driver = Driver()
 driver.add_machine(player_machine)
