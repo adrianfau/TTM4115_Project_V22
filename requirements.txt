@@ -1,0 +1,8 @@
+stmpy
+paho-mqtt
+tensorflow
+numpy
+matplotlib
+opencv-python
+keyboard
+PyAudio==0.2.11
