@@ -1,16 +1,21 @@
 from stmpy import Driver, Machine
 import paho.mqtt.client as mqtt
 from threading import Thread
+import socket
 import time
 #import gpiozero
 #import movenet as mn
 import keyboard as kb
 import sys
+from pyvoice import client, server
+from pyvoice import stopthread as st
 
 print("Hello, World!")
 p1_topic = "ttm4115/team06/HITW/user1"
 p2_topic = "ttm4115/team06/HITW/user2"
 ctrl_topic = "ttm4115/team06/HITW/controller"
+
+voiceport = 55099
 
 class HoleInTheWall:
     def __init__(self):
@@ -23,16 +28,24 @@ class HoleInTheWall:
         self.own_score = 0
         self.round_number = 0
 
-    def on_button_press(self, b):
-        self.stm.send('button1')
+    def on_button_press(self):
+        print("asd")
+        #self.stm.send('button1')
 
-    def kb_backup(player_stm):
-        kb.add_hotkey("numpad_enter", player_stm.on_button_press(self, b))
+    def kb_backup(self):
+        kb.add_hotkey("numpad_enter", self.on_button_press())
 
     def terminateSession(self):
         print("Terminate session")
         myclient.unsubscribe(p1_topic)
         myclient.unsubscribe(p2_topic)
+
+        try:
+            voiceserver_thread.stop()
+        except:
+            pass
+
+        voiceclient_thread.stop()
 
     def sendGameInvite(self): #subscribe to player 2
         myclient.subscribe(p2_topic)
@@ -42,7 +55,11 @@ class HoleInTheWall:
         myclient.subscribe(ctrl_topic)
 
     def startGameSession(self):
-        print("b")
+        voiceip = socket.gethostbyname(socket.gethostname())
+        global voiceserver_thread; global voiceclient_thread
+        voiceserver_thread = st.StoppableThread(target = createVoiceServer(voiceport)).start()
+        voiceclient_thread = st.StoppableThread(target = createVoiceClient(voiceip, voiceport)).start()
+        #TODO: MQTT Communicate Voice IP
 
     def startGame(self):
         score = [None, None, None]
@@ -76,11 +93,16 @@ class HoleInTheWall:
     def sendInviteTimedOut(self):
         myclient.publish(p2_topic, "receiveInviteTimedOut")
 
-    def sendInviteAccepted(self):
+    def sendInviteAccepted(self): #TODO: Implement correct IP parsing from MQTT
         myclient.publish(p1_topic, "inviteAccepted")
         myclient.subscribe(p1_topic)
+        voiceclient2_thread = st.StoppableThread(target = createVoiceClient(voiceip, voiceport)).start()
 
     def terminateGameSession(self):
+        voiceserver_thread.stop()
+        voiceclient_thread.stop()
+        voiceserver_thread.join()
+        voiceclient_thread.join()
         print("asd")
 
     def endGame(self):
@@ -169,7 +191,6 @@ postGame = {'name': 'postGame',
             'entry': 'showScores; start_timer("t", 1000), endGame; lightsOff'
             }
 
-
 class MQTT_Client_1:
     def __init__(self):
         self.count = 0
@@ -203,6 +224,17 @@ class MQTT_Client_1:
             print("Interrupted")
             self.client.disconnect()
 
+def createVoiceClient(target_ip, target_port):
+    voice_client = client.Client(target_ip, target_port)
+    while True:
+        if voiceclient_thread.stopped():
+            voice_client.terminate_client()
+
+def createVoiceServer(port):
+    server_client = server.Server(port)
+    while True:
+        if voiceserver_thread.stopped():
+            server_client.terminate_server()
 
 broker, port = "mqtt.item.ntnu.no", 1883
 
@@ -210,6 +242,7 @@ player = HoleInTheWall()
 player_machine = Machine(transitions=[t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12], states=[
                          idle, connecting, waitingToAccept, playing, postGame], obj=player, name="player")
 #hitw_functions = [attribute for attribute in dir(HoleInTheWall) if callable(getattr(HoleInTheWall, attribute)) if attribute.startswith("__") is False].replace('"', '')
+player.stm = player_machine
 
 driver = Driver()
 driver.add_machine(player_machine)
@@ -228,4 +261,3 @@ myclient.start(broker, port)
 #    while running:
 
 #Fallback Keyboard input
-

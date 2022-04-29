@@ -2,13 +2,14 @@
 
 import socket
 import threading
+import stopthread as st
 
 class Server:
-    def __init__(self):
+    def __init__(self, port):
             self.ip = socket.gethostbyname(socket.gethostname())
             while 1:
                 try:
-                    self.port = int(input('Enter port number to run on --> '))
+                    self.port = port #int(input('Enter port number to run on --> '))
 
                     self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.s.bind((self.ip, self.port))
@@ -31,7 +32,8 @@ class Server:
 
             self.connections.append(c)
 
-            threading.Thread(target=self.handle_client,args=(c,addr,)).start()
+            global clienthandler_thread
+            clienthandler_thread = st.StoppableThread(target=self.handle_client,args=(c,addr,)).start()
         
     def broadcast(self, sock, data):
         for client in self.connections:
@@ -46,8 +48,18 @@ class Server:
             try:
                 data = c.recv(1024)
                 self.broadcast(c, data)
+                if clienthandler_thread.stopped():
+                    return
             
             except socket.error:
                 c.close()
 
-server = Server()
+    def terminate_server(self):
+        try:
+            clienthandler_thread.stop()
+            clienthandler_thread.join()
+            self.s.close()
+        except:
+            pass
+
+#server = Server()
