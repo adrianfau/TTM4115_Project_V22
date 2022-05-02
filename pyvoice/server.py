@@ -7,6 +7,9 @@ import stoppablethread as st
 class Server:
     def __init__(self, port):
             self.ip = socket.gethostbyname(socket.gethostname())
+            self.client_count = 0
+            self.client_delta = 0
+            #self.ip = "185.71.211.252"
             while 1:
                 try:
                     self.port = port #int(input('Enter port number to run on --> '))
@@ -24,13 +27,18 @@ class Server:
     def accept_connections(self):
         self.s.listen(100)
 
-        print('Running on IP: '+self.ip)
+        print('Running on IP: '+self.ip+' | 185.71.211.252')
         print('Running on port: '+str(self.port))
         
         while True:
             c, addr = self.s.accept()
 
             self.connections.append(c)
+
+            self.client_count = len(self.connections)
+            if self.client_count != self.client_delta:
+                print(f"{self.client_count} voice clients connected")
+            self.client_delta = self.client_count
 
             global clienthandler_thread
             clienthandler_thread = st.StoppableThread(target=self.handle_client,args=(c,addr,)).start()

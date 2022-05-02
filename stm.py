@@ -3,30 +3,23 @@ import paho.mqtt.client as mqtt
 from threading import Thread
 import socket
 import time
-#import gpiozero
 #import movenet as mn
 import keyboard as kb
 import sys
 #from pyvoice import stoppablethread
 from pyvoice import client, server
 import stoppablethread as st
-#hallo
 
 print("Hello, World!")
 p1_topic = "ttm4115/team06/HITW/user1"
 p2_topic = "ttm4115/team06/HITW/user2"
 ctrl_topic = "ttm4115/team06/HITW/controller"
 
-voiceport = 55099
+voiceport = 10505
 
 class HoleInTheWall:
     def __init__(self):
-        
         self.led = None
-        #self.button = gpiozero.Button(1)
-        #self.led = gpiozero.LED(1)
-        #self.greenLightOn = self.led.on
-        #self.greenLightOff = self.led.off
         self.own_score = 0
         self.round_number = 0
 
@@ -43,7 +36,7 @@ class HoleInTheWall:
         myclient.unsubscribe(p2_topic)
 
         try:
-            voiceserver_thread.stop()
+            voiceclient_thread.stop()
         except:
             pass
 
@@ -58,10 +51,10 @@ class HoleInTheWall:
 
     def startGameSession(self):
         print("Starting Game session - Create Voice Channel")
-        global voiceip
-        voiceip = socket.gethostbyname(socket.gethostname())
-        global voiceserver_thread; global voiceclient_thread
-        voiceserver_thread = st.StoppableThread(target = createVoiceServer, args=(voiceport,)).start()
+        global voiceip; global voiceclient_thread
+        #voiceip = socket.gethostbyname(socket.gethostname())
+        voiceip = "185.71.211.252"
+        #voiceserver_thread = st.StoppableThread(target = createVoiceServer, args=(voiceport,)).start()
         voiceclient_thread = st.StoppableThread(target = createVoiceClient, args=(voiceip, voiceport,)).start()
         myclient.publish(f"{voiceip}")
         #TODO: MQTT Communicate Voice IP
@@ -106,14 +99,14 @@ class HoleInTheWall:
 
     def terminateGameSession(self):
         print("terminategamesession")
-        if voiceserver_thread != None:
+        if voiceclient_thread != None:
             print("Ending Voice Channel")
-            if voiceserver_thread.stopped():
-                voiceserver_thread.terminate_server()
+            if voiceclient_thread.stopped():
+                #voiceserver_thread.terminate_server()
                 voiceclient_thread.terminate_client()
-
-                voiceserver_thread.join()
                 voiceclient_thread.join()
+                #voiceserver_thread.join()
+
 
     def endGame(self):
         print("endgame")
@@ -242,8 +235,8 @@ class MQTT_Client_1:
 def createVoiceClient(target_ip, target_port):
     voice_client = client.Client(target_ip, target_port)
 
-def createVoiceServer(port):
-    server_client = server.Server(port)
+#def createVoiceServer(port):
+#    server_client = server.Server(port)
 
 broker, port = "mqtt.item.ntnu.no", 1883
 

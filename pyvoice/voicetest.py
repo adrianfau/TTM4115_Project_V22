@@ -4,20 +4,18 @@ import socket
 
 print(socket.gethostbyname(socket.gethostname()))
 voiceip = socket.gethostbyname(socket.gethostname())
-voiceport = 55099
+voiceport = 10505
 def createVoiceServer(port):
     voice_server = server.Server(port)
 def createVoiceClient(voiceip, voiceport):
     voice_client = client.Client(voiceip, voiceport)
 
 def run_server_and_client():
-    print("running server and voice client")
     voiceserver_thread = st.StoppableThread(target = createVoiceServer, args=(voiceport,)).start()
     voiceclient_thread = st.StoppableThread(target = createVoiceClient, args=(voiceip, voiceport,)).start()
 
 def run_only_client():
-    print("running voiceclient")
-    voiceclient_thread2 = st.StoppableThread(target = createVoiceClient, args=("192.168.56.1", voiceport)).start()
+    voiceclient_thread2 = st.StoppableThread(target = createVoiceClient, args=("185.71.211.252", voiceport)).start()
 
-run_server_and_client()
-#run_only_client()
+#run_server_and_client()
+run_only_client()
