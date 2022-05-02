@@ -9,6 +9,7 @@ import keyboard as kb
 import sys
 from pyvoice import client, server
 from pyvoice import stopthread as st
+#hallo
 
 print("Hello, World!")
 p1_topic = "ttm4115/team06/HITW/user1"
@@ -55,10 +56,12 @@ class HoleInTheWall:
         myclient.subscribe(ctrl_topic)
 
     def startGameSession(self):
+        global voiceip
         voiceip = socket.gethostbyname(socket.gethostname())
         global voiceserver_thread; global voiceclient_thread
-        voiceserver_thread = st.StoppableThread(target = createVoiceServer(voiceport)).start()
-        voiceclient_thread = st.StoppableThread(target = createVoiceClient(voiceip, voiceport)).start()
+        voiceserver_thread = st.StoppableThread(target = createVoiceServer, args=(voiceport,)).start()
+        voiceclient_thread = st.StoppableThread(target = createVoiceClient, args=(voiceip, voiceport,)).start()
+        myclient.publish(f"{voiceip}")
         #TODO: MQTT Communicate Voice IP
 
     def startGame(self):
@@ -99,10 +102,12 @@ class HoleInTheWall:
         voiceclient2_thread = st.StoppableThread(target = createVoiceClient(voiceip, voiceport)).start()
 
     def terminateGameSession(self):
-        voiceserver_thread.stop()
-        voiceclient_thread.stop()
-        voiceserver_thread.join()
-        voiceclient_thread.join()
+        if voiceserver_thread.stopped():
+            voiceserver_thread.terminate_server()
+            voiceclient_thread.terminate_client()
+
+            voiceserver_thread.join()
+            voiceclient_thread.join()
         print("asd")
 
     def endGame(self):
@@ -172,11 +177,11 @@ idle = {'name': 'idle',
         }
 
 connecting = {'name': 'connecting',
-              'entry': 'sendGameInvite; start_timer("t", 60000); startGameSession; sendGreenLight'
+              'entry': 'sendGameInvite; start_timer("t", 10000); startGameSession; sendGreenLight'
               }
 
 waitingToAccept = {'name': 'waitingToAccept',
-                   'entry': 'greenLight; start_timer("t", 1000)',
+                   'entry': 'greenLight; start_timer("t", 10000)',
                    }
 
 initializeGame = {'name': 'initializeGame',
@@ -209,6 +214,9 @@ class MQTT_Client_1:
         #self.stm_driver.send(msg.payload.decode("utf-8"), "quiz")
         #self.client.publish("gruppe6/quiz/question", "Quiz?")
         self.stm_driver.send(rcvd_msg, "player")
+        if len(rcvd_msg) == 2:
+            global ip
+            ip = rcvd_msg[1]
 
     def start(self, broker, port):
 
@@ -226,15 +234,9 @@ class MQTT_Client_1:
 
 def createVoiceClient(target_ip, target_port):
     voice_client = client.Client(target_ip, target_port)
-    while True:
-        if voiceclient_thread.stopped():
-            voice_client.terminate_client()
 
 def createVoiceServer(port):
     server_client = server.Server(port)
-    while True:
-        if voiceserver_thread.stopped():
-            server_client.terminate_server()
 
 broker, port = "mqtt.item.ntnu.no", 1883
 

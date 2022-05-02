@@ -1,6 +1,7 @@
 stmpy
 paho-mqtt
 tensorflow
+tensorflow-gpu
 numpy
 matplotlib
 opencv-python
