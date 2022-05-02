@@ -7,8 +7,9 @@ import time
 #import movenet as mn
 import keyboard as kb
 import sys
+#from pyvoice import stoppablethread
 from pyvoice import client, server
-from pyvoice import stoppablethread as st
+import stoppablethread as st
 #hallo
 
 print("Hello, World!")
@@ -30,11 +31,11 @@ class HoleInTheWall:
         self.round_number = 0
 
     def on_button_press(self):
-        print("asd")
+        print("buttonpressed")
         #self.stm.send('button1')
 
     def kb_backup(self):
-        kb.add_hotkey("numpad_enter", self.on_button_press())
+        kb.add_hotkey("enter", self.on_button_press())
 
     def terminateSession(self):
         print("Terminate session")
@@ -56,6 +57,7 @@ class HoleInTheWall:
         myclient.subscribe(ctrl_topic)
 
     def startGameSession(self):
+        print("Starting Game session - Create Voice Channel")
         global voiceip
         voiceip = socket.gethostbyname(socket.gethostname())
         global voiceserver_thread; global voiceclient_thread
@@ -99,19 +101,22 @@ class HoleInTheWall:
     def sendInviteAccepted(self): #TODO: Implement correct IP parsing from MQTT
         myclient.publish(p1_topic, "inviteAccepted")
         myclient.subscribe(p1_topic)
-        voiceclient2_thread = st.StoppableThread(target = createVoiceClient(voiceip, voiceport)).start()
+        voiceclient2_thread = st.StoppableThread(target = createVoiceClient, args=(joinip, voiceport,)).start()
+        print("Invite Accepted. Joining Voice Server.")
 
     def terminateGameSession(self):
-        if voiceserver_thread.stopped():
-            voiceserver_thread.terminate_server()
-            voiceclient_thread.terminate_client()
+        print("terminategamesession")
+        if voiceserver_thread != None:
+            print("Ending Voice Channel")
+            if voiceserver_thread.stopped():
+                voiceserver_thread.terminate_server()
+                voiceclient_thread.terminate_client()
 
-            voiceserver_thread.join()
-            voiceclient_thread.join()
-        print("asd")
+                voiceserver_thread.join()
+                voiceclient_thread.join()
 
     def endGame(self):
-        print("asd")
+        print("endgame")
 
 t0 = {'source': 'initial',
       'target': 'idle',
@@ -164,7 +169,8 @@ t10 = {'trigger': 'recieveGameInvite', #receiveGreenLight
 
 t11 = {'trigger': 'receiveInviteTimedOut', #receiveInviteTimedOut
       'source': 'waitingToAccept',
-      'target': 'idle'}
+      'target': 'idle',
+      'effect': 'terminateGameSession'}
 
 t12 = {'trigger': 'button1', #p2 accept game
       'source': 'waitingToAccept',
@@ -173,7 +179,7 @@ t12 = {'trigger': 'button1', #p2 accept game
 
 # Change 3: We declare dicts for the states
 idle = {'name': 'idle',
-        'entry': 'terminateGameSession; lightsOff;'
+        'entry': 'lightsOff;'
         }
 
 connecting = {'name': 'connecting',
@@ -208,15 +214,16 @@ class MQTT_Client_1:
 
     def on_message(self, client, userdata, msg):
         print("on_message(): topic: {}".format(msg.topic))
-        #self.stm_driver.send("message", "tick_tock")
         print(msg.payload.decode("utf-8"))
         rcvd_msg = msg.payload.decode("utf-8")
         #self.stm_driver.send(msg.payload.decode("utf-8"), "quiz")
         #self.client.publish("gruppe6/quiz/question", "Quiz?")
+        if " " in rcvd_msg:
+            rcvd_msg.split()
+            global joinip
+            joinip = rcvd_msg[1]
+            rcvd_msg = rcvd_msg[0]
         self.stm_driver.send(rcvd_msg, "player")
-        if len(rcvd_msg) == 2:
-            global ip
-            ip = rcvd_msg[1]
 
     def start(self, broker, port):
 

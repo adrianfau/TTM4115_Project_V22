@@ -42,7 +42,7 @@ class Client:
             try:
                 data = self.s.recv(1024)
                 self.playing_stream.write(data)
-                if receive_thread.stopped():
+                if receive_thread != None and receive_thread.stopped():
                     return
             except:
                 pass

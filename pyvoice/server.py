@@ -48,7 +48,7 @@ class Server:
             try:
                 data = c.recv(1024)
                 self.broadcast(c, data)
-                if clienthandler_thread.stopped():
+                if clienthandler_thread != None and clienthandler_thread.stopped():
                     return
             
             except socket.error:

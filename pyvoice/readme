@@ -1,0 +1,15 @@
+To run:
+
+Windows:
+pip install pyaudio
+
+Mac/Linux:
+sudo apt install -y portaudio19-dev
+sudo apt install -y pyaudio
+pip install pyaudio
+
+if pip install does not work:
+check python version with python --version
+install corresponding file for correct version from: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
+put downloaded .whl file in pyvoice folder
+run pip install PyAudio-0.2.11-xxx-xxx-xxx-xxx, corresponding to file name
