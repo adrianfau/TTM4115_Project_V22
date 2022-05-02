@@ -2,7 +2,7 @@
 
 import socket
 import threading
-import stopthread as st
+import stoppablethread as st
 
 class Server:
     def __init__(self, port):

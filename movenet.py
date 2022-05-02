@@ -36,7 +36,6 @@ while cap.isOpened():
 cap.release()
 cv2.destroyAllWindows()
 
-print("hello world")
 def draw_keypoints(frame, keypoints, confidence_threshold):
     y, x, c = frame.shape
     shaped = np.squeeze(np.multiply(keypoints, [y,x,1]))

@@ -8,7 +8,7 @@ import time
 import keyboard as kb
 import sys
 from pyvoice import client, server
-from pyvoice import stopthread as st
+from pyvoice import stoppablethread as st
 #hallo
 
 print("Hello, World!")

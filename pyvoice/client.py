@@ -3,7 +3,7 @@
 import socket
 import threading
 import pyaudio
-import stopthread as st
+import stoppablethread as st
 
 class Client:
     def __init__(self, target_ip, target_port):
