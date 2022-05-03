@@ -9,4 +9,6 @@ keyboard
 ipywidgets
 ipython
 pillow
+pipwin
 PyAudio==0.2.11
+multiprocess
