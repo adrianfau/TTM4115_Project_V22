@@ -6,4 +6,7 @@ numpy
 matplotlib
 opencv-python
 keyboard
+ipywidgets
+ipython
+pillow
 PyAudio==0.2.11
