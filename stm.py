@@ -1,5 +1,4 @@
-#import tensorflow as tf
-#import tensorflow-gpu
+import tensorflow as tf
 from stmpy import Driver, Machine
 import paho.mqtt.client as mqtt
 #from PIL import ImageGrab
@@ -12,13 +11,13 @@ import sys
 #from multiprocessing import Process
 #from hashlib import new
 #from socket import SocketIO
-#import cv2
+import cv2
 
+import random
 from pyvoice import client, server
 import ipywidgets as widgets
 from IPython.display import display
 import stoppablethread as st
-from game import Game, Level
 
 print("Hello, World!")
 p1_topic = "ttm4115/team06/HITW/user1"
@@ -29,7 +28,7 @@ voiceport = 10505
 voiceip = "185.71.211.252"
 active_player = None
 downloaded_images = 0
-""""
+
 class Level:
     def __init__(self, name, cap, tr, bl):
         self.name = name
@@ -240,7 +239,7 @@ class Game:
         callback(self.score)
         cv2.destroyAllWindows()
         self.cap.release()                    
-"""
+
 class HoleInTheWall:
     def load_images(self):
         self.green_on = open("images/green_on.png", "rb").read()
