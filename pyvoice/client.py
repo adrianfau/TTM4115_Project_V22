@@ -30,7 +30,7 @@ class Client:
         self.playing_stream = self.p.open(format=audio_format, channels=channels, rate=rate, output=True, frames_per_buffer=chunk_size)
         self.recording_stream = self.p.open(format=audio_format, channels=channels, rate=rate, input=True, frames_per_buffer=chunk_size)
         
-        print("Connected to Server")
+        print("Connected to Voice Server")
 
         # start threads
         global receive_thread
