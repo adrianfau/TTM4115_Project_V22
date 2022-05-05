@@ -58,6 +58,7 @@ class Client:
     
     def terminate_client(self):
         try:
+            print("Voice Client terminate_client")
             receive_thread.stop()
             receive_thread.join()
 
@@ -67,6 +68,7 @@ class Client:
             self.recording_stream.close()
             self.p.terminate()
             self.s.close()
+            print("Voice Client terminate_client FINISH")
         except:
             pass
 
