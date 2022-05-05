@@ -8,6 +8,8 @@ import stoppablethread as st
 class Client:
     def __init__(self, target_ip, target_port):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.bool = True
+        self.main_thread = threading.current_thread()
         
         while 1:
             try:
@@ -38,19 +40,21 @@ class Client:
         self.send_data_to_server()
 
     def receive_server_data(self):
-        while True:
+        while bool:
             try:
+                if not self.main_thread.is_alive():
+                    break
                 data = self.s.recv(1024)
                 self.playing_stream.write(data)
-                if receive_thread != None and receive_thread.stopped():
-                    return
             except:
                 pass
 
 
     def send_data_to_server(self):
-        while True:
+        while bool:
             try:
+                if not self.main_thread.is_alive():
+                    break
                 data = self.recording_stream.read(1024)
                 self.s.sendall(data)
             except:
@@ -58,9 +62,11 @@ class Client:
     
     def terminate_client(self):
         try:
-            print("Voice Client terminate_client")
-            receive_thread.stop()
-            receive_thread.join()
+            print("client1")
+            bool = False
+            receive_thread.kill()
+            receive_thread.join(0.0)
+            print("client2")
 
             self.playing_stream.stop_stream()
             self.playing_stream.close()
@@ -68,7 +74,7 @@ class Client:
             self.recording_stream.close()
             self.p.terminate()
             self.s.close()
-            print("Voice Client terminate_client FINISH")
+            print("client3")
         except:
             pass
 
