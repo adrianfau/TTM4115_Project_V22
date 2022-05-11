@@ -3,20 +3,20 @@ Two player Hole-In-The-Wall game to enable accidental conversation across remote
 
 ## Setup
 Ensure camera is accessible in system settings.
-### Windows
+#### Windows
 '''
 pip install -r requirements.txt
 pipwin install pyaudio
 '''
 
-### Mac / Linux
+#### Mac / Linux
 '''
 sudo apt install -y portaudio19-dev
 sudo apt install -y pyaudio
 pip install -r requirements.txt
 '''
 
-## To run:
+#### To run:
 
 '''
 cd /where/you/installed/ttm4115_project_v22
